@@ -5,6 +5,7 @@ from Components.state import State
 from Components.transition import alpha
 import sys
 import shelve
+import time
 
 pygame.init()
 
@@ -36,7 +37,7 @@ FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
 STARTTRANSITION = pygame.USEREVENT + 1
 
 
-def draw(state, marshmellows, fade, start):
+def draw(state, marshmellows:all_marshmellows, fade, start):
   background = pygame.Surface([WIDTH, HEIGHT])
   background.fill((255, 255, 255))
   WIN.blit(background, (0, 0))
@@ -44,11 +45,12 @@ def draw(state, marshmellows, fade, start):
   if state.get_state() == "start":
     start.drawText(WIN)
   
-  if state.get_state() == "game":
+  if state.get_state() == "menu":
     background.fill((255, 255, 255))
     WIN.blit(background, (0, 0))
     
     marshmellows.draw(WIN)
+    marshmellows.animate(WIN)
     
   if fade.start == True:
 
@@ -85,13 +87,17 @@ def main():
   
   #load saves
   stored_data = shelve.open(os.path.join("Saves", "data"))
+  stored_data.clear()
   try:
     _ = stored_data["do_tutorial"]
-  except KeyError:
-    stored_data["do_tutorial"] = "yes"
     levels_completed = stored_data["levels_completed"]
     burnt_marshmellows = stored_data["burnt_marshmellows"]
     skewered_marshmellows = stored_data["skewered_marshmellows"]
+  except KeyError:
+    stored_data["do_tutorial"] = "yes"
+    levels_completed = 0
+    burnt_marshmellows = 0
+    skewered_marshmellows = 0
     
   stored_data.close()
   
@@ -112,10 +118,12 @@ def main():
       if event.type == pygame.QUIT:
         
         #save game with shelve
+        stored_data = shelve.open(os.path.join("Saves", "data"))
         stored_data["do_tutorial"] = "no"
         stored_data["levels_completed"] = levels_completed
         stored_data["burnt_marshmellows"] = burnt_marshmellows
         stored_data["skewered_marshmellows"] = skewered_marshmellows
+        stored_data.close()
 
         #ends game loop
         run = False
@@ -128,7 +136,7 @@ def main():
         
       elif event.type == pygame.MOUSEBUTTONDOWN:
         
-        if state.get_state() == "game":
+        if state.get_state() == "menu":
           marshmellows.create(WIDTH, 100, "normal")
       
       elif event.type == pygame.KEYDOWN:
@@ -146,6 +154,7 @@ def main():
       if fade.fade == "out":
         if state.get_state() == "start":
           state.set_state("menu")
+          time.sleep(2)
 
     marshmellows.move(-2, 0)
     
