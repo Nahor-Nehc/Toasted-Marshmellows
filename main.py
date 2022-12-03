@@ -11,7 +11,7 @@ pygame.init()
 
 WIDTH, HEIGHT = 990, 540
 
-FPS = 60
+FPS = 30
 
 # general colours
 BLACK =  (  0,   0,   0)
@@ -154,8 +154,10 @@ def main():
       if fade.fade == "out":
         if state.get_state() == "start":
           state.set_state("menu")
-          time.sleep(2)
-
+          time.sleep(1)
+          
+    marshmellows.delete_off_screen()
+    print()
     marshmellows.move(-2, 0)
     
     draw(state, marshmellows, fade, start)

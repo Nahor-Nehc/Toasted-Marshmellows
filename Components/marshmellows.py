@@ -25,27 +25,23 @@ class marshmellow(pygame.sprite.Sprite):
   def animate(self, window):
     self.animation.set_coords(self.rect.x, self.rect.y, self.rect.x, self.rect.y)
     self.animation.play(window, auto_increment_frame = True)
+    print(self.animation)
     
 class all_marshmellows(pygame.sprite.Group):
   def __init__(self):
+    print("initialising")
     
     self.types = {
       "normal": {
         "width": 100, #placeholder
         "height": 100,
-        "speed": 2,
+        #"speed": 2,
         "image": pygame.image.load(os.path.join("Assets", "placeholder.jpg")),
+        "animation set frames": lambda anim: anim.set_frames([pygame.transform.scale(self.types["normal"]["image"], (self.types["normal"]["width"], self.types["normal"]["height"])), pygame.transform.rotate(pygame.transform.scale(self.types["normal"]["image"], (self.types["normal"]["width"], self.types["normal"]["height"])), 90)])
       }
     }
     
-    width = self.types["normal"]["width"]
-    height = self.types["normal"]["height"]
-    default_anim = Animation(0, 0)
-    default_anim.set_frames([pygame.transform.scale(self.types["normal"]["image"], (width, height)), pygame.transform.rotate(pygame.transform.scale(self.types["normal"]["image"], (width, height)), 90)])
-    default_anim.set_offsets([[0, 0], [0, 0]])
-    default_anim.duplicate_all_frames(20)
-    
-    self.types.update({"animation" : default_anim})
+    print(self.types)
     pygame.sprite.Group.__init__(self)
 
   def move(self, x_magnitude, y_magnitude):
@@ -53,10 +49,33 @@ class all_marshmellows(pygame.sprite.Group):
       sprite.move(x_magnitude, y_magnitude)
       
   def create(self, x, y, type):
+    animation = Animation(0, 0)
+    self.types[type]["animation set frames"](animation)
+    animation.set_offsets([[0, 0], [0, 0]])
+    animation.duplicate_all_frames(20)
+    
     width = self.types[type]["width"]
     height = self.types[type]["height"]
-    self.add(marshmellow(self, x, y, pygame.transform.scale(self.types[type]["image"], (width, height)), self.types[type]["animation"]))
+    
+    self.add(marshmellow(self, x, y, pygame.transform.scale(self.types[type]["image"], (width, height)), animation))
     
   def animate(self, window):
     for sprite in self:
       sprite.animate(window)
+      
+  def delete_off_screen(self):
+    for sprite in self:
+      if sprite.rect.right < 0:
+        print("deleted")
+        sprite.kill()
+        
+  def get_projectile_collisions(self, projectiles):
+    all_collisions = []
+    for sprite in self:
+      for proj in projectiles:
+        if sprite.rect.colliderect(proj):
+          all_collisions.append(sprite)
+    return all_collisions
+  
+  def delete(self, sprite:pygame.sprite.Sprite):
+    sprite.kill()
