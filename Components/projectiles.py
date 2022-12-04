@@ -3,7 +3,7 @@ import os
 from Components.pygmtlsv4v2 import Animation
 
 
-class marshmellow(pygame.sprite.Sprite):
+class projectile(pygame.sprite.Sprite):
   def __init__(self, group, x, y, image, animation):
     pygame.sprite.Sprite.__init__(self)
     
@@ -27,32 +27,28 @@ class marshmellow(pygame.sprite.Sprite):
     self.animation.play(window, auto_increment_frame = True)
     print(self.animation)
     
-class all_marshmellows(pygame.sprite.Group):
+class all_projectiles(pygame.sprite.Group):
   def __init__(self):
     print("initialising")
+    short_range_movements = []
     
     self.types = {
       "normal": {
         "width": 100, #placeholder
         "height": 100,
         #"speed": 2,
-        "image1": pygame.image.load(os.path.join("Assets", "placeholder.jpg")),
-        "image2": pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "placeholder.jpg")), 90),
+        "images": [pygame.image.load(os.path.join("Assets", "placeholder.jpg"))],
+        "movements": short_range_movements,
         "animation set frames": lambda anim: anim.set_frames(
           [pygame.transform.scale(
-            self.types["normal"]["image1"],
+            self.types["normal"]["images"][x],
             (self.types["normal"]["width"], self.types["normal"]["height"])
-            ),
-          pygame.transform.scale(
-            self.types["normal"]["image2"],
-            (self.types["normal"]["width"], self.types["normal"]["height"])
-            )
+            ) for x in range(len(self.types["normal"]["images"]))
           ]
         )
       }
     }
     
-    print(self.types)
     pygame.sprite.Group.__init__(self)
 
   def move(self, x_magnitude, y_magnitude):
@@ -68,7 +64,7 @@ class all_marshmellows(pygame.sprite.Group):
     width = self.types[type]["width"]
     height = self.types[type]["height"]
     
-    self.add(marshmellow(self, x, y, pygame.transform.scale(self.types[type]["image1"], (width, height)), animation))
+    self.add(projectile(self, x, y, pygame.transform.scale(self.types[type]["image"], (width, height)), animation))
     
   def animate(self, window):
     for sprite in self:
