@@ -60,7 +60,7 @@ def draw(state, marshmellows: all_marshmellows, fade: alpha, start: alpha, turre
     
     turret.draw(WIN)
     
-    marshmellows.draw(WIN)
+    #marshmellows.draw(WIN)
     marshmellows.animate(WIN)
     
   if fade.start == True:
@@ -76,8 +76,7 @@ def draw(state, marshmellows: all_marshmellows, fade: alpha, start: alpha, turre
       fade.start = False
       
 
-  pygame.display.update()
-
+  pygame.display.flip()
 
 def main():
   
@@ -147,7 +146,7 @@ def main():
       elif event.type == pygame.MOUSEBUTTONDOWN:
         
         if state.get_state() == "game":###################################
-          marshmellows.create(WIDTH, 100, "normal")
+          marshmellows.create(100, 100, "normal", marshmellows)
       
       elif event.type == pygame.KEYDOWN:
         
@@ -173,7 +172,6 @@ def main():
           time.sleep(0.5)
           
     marshmellows.delete_off_screen()
-    print()
     marshmellows.move(-2, 0)
     
     draw(state, marshmellows, fade, start, turret)
