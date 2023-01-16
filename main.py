@@ -40,7 +40,7 @@ FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
 STARTTRANSITION = pygame.USEREVENT + 1
 
 
-def draw(state, marshmellows: all_marshmellows, fade: alpha, start: alpha, turret: Turret):
+def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fade: alpha, start: alpha, turret: Turret):
   background = pygame.Surface([WIDTH, HEIGHT])
   background.fill((255, 255, 255))
   WIN.blit(background, (0, 0))
@@ -62,6 +62,7 @@ def draw(state, marshmellows: all_marshmellows, fade: alpha, start: alpha, turre
     
     #marshmellows.draw(WIN)
     marshmellows.animate(WIN)
+    projectiles.animate(WIN)
     
   if fade.start == True:
 
@@ -85,9 +86,9 @@ def main():
   
   state = State("start")
   
-  marshmellows = all_marshmellows()
-  
   turret = Turret([ROWHEIGHT*x+90 for x in range(1, 6)], ROWHEIGHT, WIDTH)
+  marshmellows = all_marshmellows()
+  projectiles = all_projectiles(turret)
   
   fade = alpha()
   text = "Loading..."
@@ -99,7 +100,7 @@ def main():
   
   #load saves
   stored_data = shelve.open(os.path.join("Saves", "data"))
-  stored_data.clear()
+  #stored_data.clear()
   try:
     _ = stored_data["do_tutorial"]
     levels_completed = stored_data["levels_completed"]
@@ -146,7 +147,8 @@ def main():
       elif event.type == pygame.MOUSEBUTTONDOWN:
         
         if state.get_state() == "game":###################################
-          marshmellows.create(100, 100, "normal", marshmellows)
+          marshmellows.create(WIDTH, 100, "normal", marshmellows)
+          projectiles.create("fireball")
       
       elif event.type == pygame.KEYDOWN:
         
@@ -169,11 +171,15 @@ def main():
       if fade.fade == "out":
         if state.get_state() == "start":
           state.set_state("game") ###################################
-          time.sleep(0.5)
+          time.sleep(0.25)
           
     marshmellows.delete_off_screen()
+    projectiles.delete_off_screen(WIDTH)
     marshmellows.move(-2, 0)
+    projectiles.move()
+    collisions = marshmellows.calculate_projectile_collisions(projectiles)
+    marshmellows.process_projectile_collisions(collisions)
     
-    draw(state, marshmellows, fade, start, turret)
+    draw(state, marshmellows, projectiles, fade, start, turret)
 
 main()

@@ -2,11 +2,17 @@ import pygame
 import os
 import time
 from Components.pygmtlsv4v2 import Animation
+from Components.projectiles import all_projectiles
 
 images= {
     "normal" : pygame.transform.scale(pygame.image.load(os.path.join("Assets", "placeholder.jpg")),
       (100, 100)),
     }
+
+NORMAL_IMAGES = [pygame.transform.scale(
+    pygame.image.load(
+      os.path.join(
+        "Assets", "Animations", "marshmellows", "normal", f"{x}.png")), (100, 100)) for x in range(1, 3)]
 
 class marshmellow(pygame.sprite.Sprite):
   def move(self, x_magnitude, y_magnitude):
@@ -16,36 +22,34 @@ class marshmellow(pygame.sprite.Sprite):
   def animate(self, window):
     self.animation.set_coords(self.rect.x, self.rect.y, self.rect.x, self.rect.y)
     self.animation.play(window, auto_increment_frame = True)
+    
+  def hurt(self, damage:int):
+    self.health -= damage
+    if self.health <= 0:
+      self.kill()
 
 class normal(marshmellow):
   def __init__(self, x, y, group):
     pygame.sprite.Sprite.__init__(self)
-    self.image = images["normal"]
+    self.image = [*NORMAL_IMAGES][0]
+    self.images = [*NORMAL_IMAGES]
     
-    self.images = [self.image, pygame.transform.rotate(self.image, 90)]
-    
-    self.rect = self.images[0].get_rect()
+    self.rect = self.image.get_rect()
     self.rect.x = x
     self.rect.y = y
     
-    self.images = [pygame.transform.scale(
-            self.images[0],
-            (self.rect.width, self.rect.height)
-            ),
-          pygame.transform.scale(
-            self.images[1],
-            (self.rect.width, self.rect.height)
-            )]
-    
-    self.animation = Animation(x, y)
+    self.animation = Animation(self.rect.x, self.rect.y)
     self.animation.set_frames(self.images)
-    self.animation.set_offsets([[0, 0], [0, 0]])
+    self.animation.set_offsets([[0, 0] for _ in range(len(self.images))])
     self.animation.duplicate_all_frames(20)
     self.animation.start()
     
     self.auto_stop = False
     
     self.add(group)
+    
+    self.maxhealth = 2
+    self.health = 2
 
 class all_marshmellows(pygame.sprite.Group):
   def __init__(self):
@@ -72,13 +76,22 @@ class all_marshmellows(pygame.sprite.Group):
         print("deleted")
         sprite.kill()
         
-  def get_projectile_collisions(self, projectiles):
+  def calculate_projectile_collisions(self, projectiles:all_projectiles):
     all_collisions = []
     for sprite in self:
       for proj in projectiles:
-        if sprite.rect.colliderect(proj):
-          all_collisions.append(sprite)
+        if sprite.rect.colliderect(proj.rect):
+          all_collisions.append([sprite, proj])
     return all_collisions
+  
+  def process_projectile_collisions(self, collisions):
+    used_projectiles = []
+    for collision in collisions:
+      if collision[1] not in used_projectiles:
+        collision[0].hurt(collision[1].damage)
+        collision[1].pierced()
+        used_projectiles.append(collision[1])
+      
   
   def delete(self, sprite:pygame.sprite.Sprite):
     sprite.kill()
