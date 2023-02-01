@@ -4,11 +4,6 @@ import time
 from Components.pygmtlsv4v2 import Animation
 from Components.projectiles import all_projectiles
 
-images= {
-    "normal" : pygame.transform.scale(pygame.image.load(os.path.join("Assets", "placeholder.jpg")),
-      (100, 100)),
-    }
-
 NORMAL_IMAGES = [pygame.transform.scale(
     pygame.image.load(
       os.path.join(
@@ -29,14 +24,18 @@ class marshmellow(pygame.sprite.Sprite):
       self.kill()
 
 class normal(marshmellow):
-  def __init__(self, x, y, group):
+  def __init__(self, row, y, window_width, group):
     pygame.sprite.Sprite.__init__(self)
     self.image = [*NORMAL_IMAGES][0]
     self.images = [*NORMAL_IMAGES]
+    self.movements = 2
     
     self.rect = self.image.get_rect()
-    self.rect.x = x
-    self.rect.y = y
+    self.rect.x = window_width
+    self.rect.y = y - self.rect.height
+    
+    self.row_bound = True
+    self.row = row
     
     self.animation = Animation(self.rect.x, self.rect.y)
     self.animation.set_frames(self.images)
@@ -50,21 +49,30 @@ class normal(marshmellow):
     
     self.maxhealth = 2
     self.health = 2
+    
+  def move(self):
+    self.rect.x -= self.movements
+    
 
 class all_marshmellows(pygame.sprite.Group):
-  def __init__(self):
+  def __init__(self, row_height, rows, window_width):
     pygame.sprite.Group.__init__(self)
+    self.row_height = row_height
+    self.rows = rows
+    
+    self.window_width = window_width
     
     self.types = {
       "normal": normal
     }
 
-  def move(self, x_magnitude, y_magnitude):
+  def move(self):
     for sprite in self:
-      sprite.move(x_magnitude, y_magnitude)
+      sprite.move()
       
-  def create(self, x, y, marsh_type, marshmellows):
-    self.types[marsh_type](x, y, marshmellows)
+  def create(self, row, marsh_type):
+    y = self.rows[row] + self.row_height
+    self.types[marsh_type](row, y, self.window_width, self)
     
   def animate(self, window):
     for sprite in self:
@@ -87,10 +95,15 @@ class all_marshmellows(pygame.sprite.Group):
   def process_projectile_collisions(self, collisions):
     used_projectiles = []
     for collision in collisions:
-      if collision[1] not in used_projectiles:
-        collision[0].hurt(collision[1].damage)
-        collision[1].pierced()
-        used_projectiles.append(collision[1])
+      if (collision[1] not in used_projectiles):
+        if collision[0].row_bound and (collision[0].row != collision[1].row):
+          pass
+        elif collision[1].row_bound and (collision[0].row != collision[1].row):
+          pass
+        else:
+          collision[0].hurt(collision[1].damage)
+          collision[1].pierced()
+          used_projectiles.append(collision[1])
       
   
   def delete(self, sprite:pygame.sprite.Sprite):

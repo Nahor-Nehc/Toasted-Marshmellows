@@ -38,6 +38,9 @@ class fireball(projectile):
     self.rect.x = turret.turret_mouth_x
     self.rect.y = turret.turret_mouth_y - self.rect.height//3
     
+    self.row_bound = False
+    self.row = turret.current
+    
     self.animation = Animation(self.rect.x, self.rect.y)
     self.animation.set_frames(self.images)
     

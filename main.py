@@ -8,6 +8,7 @@ from Components.projectiles import projectile, all_projectiles
 import sys
 import shelve
 import time
+import random
 
 pygame.init()
 
@@ -39,6 +40,7 @@ FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
 
 STARTTRANSITION = pygame.USEREVENT + 1
 
+ROWS = [ROWHEIGHT*x+90 for x in range(1, 6)]
 
 def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fade: alpha, start: alpha, turret: Turret):
   background = pygame.Surface([WIDTH, HEIGHT])
@@ -79,6 +81,14 @@ def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fa
 
   pygame.display.flip()
 
+def update_game(marshmellows, projectiles):
+  marshmellows.delete_off_screen()
+  projectiles.delete_off_screen(WIDTH)
+  marshmellows.move()
+  projectiles.move()
+  collisions = marshmellows.calculate_projectile_collisions(projectiles)
+  marshmellows.process_projectile_collisions(collisions)
+
 def main():
   
   #initiates the clock
@@ -86,8 +96,8 @@ def main():
   
   state = State("start")
   
-  turret = Turret([ROWHEIGHT*x+90 for x in range(1, 6)], ROWHEIGHT, WIDTH)
-  marshmellows = all_marshmellows()
+  turret = Turret(ROWS, ROWHEIGHT, WIDTH)
+  marshmellows = all_marshmellows(ROWHEIGHT, ROWS, WIDTH)
   projectiles = all_projectiles(turret)
   
   fade = alpha()
@@ -145,13 +155,11 @@ def main():
         sys.exit()
         
       elif event.type == pygame.MOUSEBUTTONDOWN:
-        
         if state.get_state() == "game":###################################
-          marshmellows.create(WIDTH, 100, "normal", marshmellows)
+          marshmellows.create(random.randrange(0, 5), "normal")
           projectiles.create("fireball")
       
       elif event.type == pygame.KEYDOWN:
-        
         if state.get_state() == "start":
           if event.key == pygame.K_RETURN:
             pygame.event.post(pygame.event.Event(STARTTRANSITION))
@@ -171,14 +179,9 @@ def main():
       if fade.fade == "out":
         if state.get_state() == "start":
           state.set_state("game") ###################################
-          time.sleep(0.25)
+          time.sleep(0.25) ##load levels here
           
-    marshmellows.delete_off_screen()
-    projectiles.delete_off_screen(WIDTH)
-    marshmellows.move(-2, 0)
-    projectiles.move()
-    collisions = marshmellows.calculate_projectile_collisions(projectiles)
-    marshmellows.process_projectile_collisions(collisions)
+    update_game(marshmellows, projectiles)
     
     draw(state, marshmellows, projectiles, fade, start, turret)
 
