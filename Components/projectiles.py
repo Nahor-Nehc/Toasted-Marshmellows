@@ -6,7 +6,7 @@ from Components.turret import Turret
 FIREBALL_IMAGES = [pygame.transform.scale(
     pygame.image.load(
       os.path.join(
-        "Assets", "Animations", "projectiles", "fireball", f"{x}.png")), (60, 30)) for x in range(1, 6)]
+        "Assets", "Animations", "projectiles", "fireball", f"{x}.png")).convert_alpha(), (60, 30)) for x in range(1, 6)]
 
 class projectile(pygame.sprite.Sprite):
   def __init__(self):

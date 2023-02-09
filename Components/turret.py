@@ -3,7 +3,7 @@ import os
 
 class Turret:
   def __init__(self, rows : list, row_height, width, size = 70):
-    self.image = pygame.transform.scale(pygame.image.load(os.path.join("Assets", "images", "turret.png")), (size, size))
+    self.image = pygame.transform.scale(pygame.image.load(os.path.join("Assets", "images", "turret.png")).convert_alpha(), (size, size))
     self.rows = rows
     self.size = size
     self.current = 0

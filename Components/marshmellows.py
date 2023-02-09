@@ -1,13 +1,12 @@
 import pygame
 import os
-import time
 from Components.pygmtlsv4v2 import Animation
 from Components.projectiles import all_projectiles
 
 NORMAL_IMAGES = [pygame.transform.scale(
     pygame.image.load(
       os.path.join(
-        "Assets", "Animations", "marshmellows", "normal", f"{x}.png")), (100, 100)) for x in range(1, 3)]
+        "Assets", "Animations", "marshmellows", "normal", f"{x}.png")).convert_alpha(), (77, 90)) for x in range(1, 3)]
 
 class marshmellow(pygame.sprite.Sprite):
   def move(self, x_magnitude, y_magnitude):

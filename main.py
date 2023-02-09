@@ -1,16 +1,13 @@
 import pygame
-from Components.marshmellows import *
-from Components.attacks import *
-from Components.state import State
-from Components.transition import alpha
-from Components.turret import Turret
-from Components.projectiles import projectile, all_projectiles
+import os
 import sys
-import shelve
 import time
 import random
 
+pygame.mixer.pre_init(44100, 16, 2, 4096)
 pygame.init()
+
+pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP])
 
 WIDTH, HEIGHT = 990, 540
 
@@ -31,34 +28,51 @@ LBROWN = (185, 122,  87)
 DBROWN = (159, 100,  64)
 
 PADDING = WIDTH/(990/20)
-ROWHEIGHT = 75
 
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Toasted Marshmellows")
 
+from Components.marshmellows import all_marshmellows
+from Components.state import State
+from Components.transition import alpha
+from Components.turret import Turret
+from Components.loadlevels import Levels
+from Components.projectiles import all_projectiles
+
 FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
 
 STARTTRANSITION = pygame.USEREVENT + 1
+STARTLEVEL = pygame.USEREVENT + 2
 
+ROWHEIGHT = 75
+#this variable holds the y co-ordinate of the top of the row
 ROWS = [ROWHEIGHT*x+90 for x in range(1, 6)]
 
 def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fade: alpha, start: alpha, turret: Turret):
   background = pygame.Surface([WIDTH, HEIGHT])
   background.fill((255, 255, 255))
-  WIN.blit(background, (0, 0))
   
   if state.get_state() == "start":
+    #paints background white
+    WIN.blit(background, (0, 0))
+    
+    #initiates introduction text
     start.drawText(WIN)
     
   elif state.get_state() == "menu":
-    pass
+    #paints background white
+    WIN.blit(background, (0, 0))
   
   elif state.get_state() == "game":
-    background.fill((255, 255, 255))
-    WIN.blit(background, (0, 0))
+    if state.get_substate() != "paused":
+      WIN.blit(background, (0, 0))
+    else:
+      pass
+      #when the substate is paused, only refresh the  menu screen so that background remains seen
     
-    for x in range(1, 6):
-      pygame.draw.line(WIN, BLACK, (0, HEIGHT-ROWHEIGHT*x), (WIDTH, HEIGHT-ROWHEIGHT*x), 2)
+    #draws the lines for the rows
+    for x in range(0, 5):
+      pygame.draw.line(WIN, BLACK, (0, ROWS[x]), (WIDTH, ROWS[x]), 2)
     
     turret.draw(WIN)
     
@@ -99,6 +113,7 @@ def main():
   turret = Turret(ROWS, ROWHEIGHT, WIDTH)
   marshmellows = all_marshmellows(ROWHEIGHT, ROWS, WIDTH)
   projectiles = all_projectiles(turret)
+  levels = Levels()
   
   fade = alpha()
   text = "Loading..."
@@ -107,6 +122,8 @@ def main():
   
   start = alpha()
   start.text("Press ENTER to start", FONT(60), position=((WIDTH - textf.get_width())/2, (HEIGHT - textf.get_height()-PADDING)), change = 2, colour=BLACK, repeat=True)
+  
+  import shelve
   
   #load saves
   stored_data = shelve.open(os.path.join("Saves", "data"))
@@ -155,7 +172,7 @@ def main():
         sys.exit()
         
       elif event.type == pygame.MOUSEBUTTONDOWN:
-        if state.get_state() == "game":###################################
+        if state.get_state() == "game":############################ creations are placeholders
           marshmellows.create(random.randrange(0, 5), "normal")
           projectiles.create("fireball")
       
@@ -175,13 +192,19 @@ def main():
         fade.rect(BLACK, WIDTH, HEIGHT)
         fade.start = True
         
+      elif event.type == STARTLEVEL:
+        levels.passed_level()
+        levels.load_current(pygame.time.get_ticks())
+        
     if fade.start == True:
       if fade.fade == "out":
         if state.get_state() == "start":
-          state.set_state("game") ###################################
-          time.sleep(0.25) ##load levels here
+          state.set_state("game") ######### this should set it to menu state not game state
+          time.sleep(0.25)
+          levels.initialise()
           
     update_game(marshmellows, projectiles)
+    #print(turret.current)
     
     draw(state, marshmellows, projectiles, fade, start, turret)
 
