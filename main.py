@@ -7,8 +7,6 @@ import random
 pygame.mixer.pre_init(44100, 16, 2, 4096)
 pygame.init()
 
-pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP])
-
 WIDTH, HEIGHT = 990, 540
 
 FPS = 30
@@ -43,6 +41,8 @@ FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
 
 STARTTRANSITION = pygame.USEREVENT + 1
 STARTLEVEL = pygame.USEREVENT + 2
+
+USEREVENTS = [STARTTRANSITION, STARTLEVEL]
 
 ROWHEIGHT = 75
 #this variable holds the y co-ordinate of the top of the row
@@ -138,6 +138,10 @@ def main():
     toasted_marshmellows = 0
     
   stored_data.close()
+  
+  pygame.event.set_blocked(None)
+  pygame.event.set_allowed([pygame.QUIT, pygame.KEYUP, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
+  pygame.event.set_allowed(USEREVENTS)
   
   #initiates game loop
   run = True
