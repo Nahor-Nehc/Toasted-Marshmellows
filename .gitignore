@@ -1,3 +1,6 @@
 Components/__pycache__/
 *.pyc
 __pycache__/
+data.dir
+data.dat
+data.bak
