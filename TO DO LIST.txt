@@ -1,4 +1,5 @@
 Working on:
+- commenting
 - loading levels
 
 Want to work on:
@@ -10,3 +11,4 @@ Finished but not happy with:
 - normal marshmellow size and displacement
 
 Can be optimised:
+- add image loading during the loading screen

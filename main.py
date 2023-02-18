@@ -25,11 +25,14 @@ DGREY =  ( 50,  50,  50)
 LBROWN = (185, 122,  87)
 DBROWN = (159, 100,  64)
 
+# padding is relative to width
 PADDING = WIDTH/(990/20)
 
+# display window that is drawn to
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Toasted Marshmellows")
 
+#import modules
 from Components.marshmellows import all_marshmellows
 from Components.state import State
 from Components.transition import alpha
@@ -37,11 +40,12 @@ from Components.turret import Turret
 from Components.loadlevels import Levels
 from Components.projectiles import all_projectiles
 
+# variable font sizing
 FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
 
+# user events
 STARTTRANSITION = pygame.USEREVENT + 1
 STARTLEVEL = pygame.USEREVENT + 2
-
 USEREVENTS = [STARTTRANSITION, STARTLEVEL]
 
 ROWHEIGHT = 75
@@ -53,10 +57,10 @@ def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fa
   background.fill((255, 255, 255))
   
   if state.get_state() == "start":
-    #paints background white
+    # paints background white
     WIN.blit(background, (0, 0))
     
-    #initiates introduction text
+    # initiates introduction text
     start.drawText(WIN)
     
   elif state.get_state() == "menu":
@@ -68,15 +72,16 @@ def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fa
       WIN.blit(background, (0, 0))
     else:
       pass
-      #when the substate is paused, only refresh the  menu screen so that background remains seen
+      # when the game is paused, only refresh the menu screen so that background remains seen
     
-    #draws the lines for the rows
+    # draws the lines for the rows
     for x in range(0, 5):
       pygame.draw.line(WIN, BLACK, (0, ROWS[x]), (WIDTH, ROWS[x]), 2)
     
+    # draws the turret
     turret.draw(WIN)
     
-    #marshmellows.draw(WIN)
+    # marshmellows.draw(WIN)
     marshmellows.animate(WIN)
     projectiles.animate(WIN)
     
@@ -92,14 +97,19 @@ def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fa
       #ends the transition
       fade.start = False
       
-
+  # update screen at the end of the processing
   pygame.display.flip()
 
 def update_game(marshmellows, projectiles):
+  # remove unnecessary sprites
   marshmellows.delete_off_screen()
   projectiles.delete_off_screen(WIDTH)
+  
+  # move the rest of the sprites
   marshmellows.move()
   projectiles.move()
+  
+  # caluculate and process collisions
   collisions = marshmellows.calculate_projectile_collisions(projectiles)
   marshmellows.process_projectile_collisions(collisions)
 
@@ -108,23 +118,23 @@ def main():
   #initiates the clock
   clock = pygame.time.Clock()
   
+  # initialise all the class objects
   state = State("start")
-  
   turret = Turret(ROWS, ROWHEIGHT, WIDTH)
   marshmellows = all_marshmellows(ROWHEIGHT, ROWS, WIDTH)
   projectiles = all_projectiles(turret)
   levels = Levels()
-  
   fade = alpha()
-  text = "Loading..."
-  textf = FONT(60).render(text, 1, WHITE)
-  fade.text(text, FONT(60), position=((WIDTH - textf.get_width())/2, (HEIGHT - textf.get_height())/2), colour=WHITE)
-  
   start = alpha()
+  
+  # setting the fade texts
+  # getting textf for the width
+  textf = FONT(60).render("Loading...", 1, WHITE)
+  fade.text("Loading...", FONT(60), position=((WIDTH - textf.get_width())/2, (HEIGHT - textf.get_height())/2), colour=WHITE)
+  
   start.text("Press ENTER to start", FONT(60), position=((WIDTH - textf.get_width())/2, (HEIGHT - textf.get_height()-PADDING)), change = 2, colour=BLACK, repeat=True)
   
   import shelve
-  
   #load saves
   stored_data = shelve.open(os.path.join("Saves", "data"))
   #stored_data.clear()
@@ -139,6 +149,7 @@ def main():
     
   stored_data.close()
   
+  # remove unnecessary events from event list
   pygame.event.set_blocked(None)
   pygame.event.set_allowed([pygame.QUIT, pygame.KEYUP, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
   pygame.event.set_allowed(USEREVENTS)
@@ -176,7 +187,7 @@ def main():
         sys.exit()
         
       elif event.type == pygame.MOUSEBUTTONDOWN:
-        if state.get_state() == "game":############################ creations are placeholders
+        if state.get_state() == "game":############################ creation of marshmellows and projectiles are placeholders
           marshmellows.create(random.randrange(0, 5), "normal")
           projectiles.create("fireball")
       
@@ -204,7 +215,7 @@ def main():
       if fade.fade == "out":
         if state.get_state() == "start":
           state.set_state("game") ######### this should set it to menu state not game state
-          time.sleep(0.25)
+          time.sleep(0.25) # load stuff here
           levels.initialise()
           
     update_game(marshmellows, projectiles)
