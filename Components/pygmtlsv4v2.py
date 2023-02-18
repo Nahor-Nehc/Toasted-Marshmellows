@@ -305,7 +305,6 @@ class Animation_group:
   def stop_all(self) -> None:
     for anims in self.animations:
       anims.stop()
-
 class Animation:
   def __init__(self, x, y, frame_type = "image"):
     self.initial_x = x

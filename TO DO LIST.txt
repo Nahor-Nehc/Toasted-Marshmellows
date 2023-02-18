@@ -1,0 +1,14 @@
+Working on:
+- commenting
+- loading levels
+
+Want to work on:
+- adding rows (classes) for rendering purposes
+    - revamping the collision detections by using the rows classes with row_bound
+
+Finished but not happy with:
+- normal marshmellow animations
+- normal marshmellow size and displacement
+
+Can be optimised:
+- add image loading during the loading screen

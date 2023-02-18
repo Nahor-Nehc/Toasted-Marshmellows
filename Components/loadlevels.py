@@ -21,6 +21,7 @@ class Levels:
       pass # when all levels have been passed do something
   def get_current_level_int(self):
     return self.current_level_int
+  
   def process(self, time: int, end_wave_event: event.Event):
     if self.last_enemy_spawn_time + self.current_level_data["delay"] <= time:
       event.post(end_wave_event)
