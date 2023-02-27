@@ -128,7 +128,7 @@ def main():
   start = alpha()
   
   # setting the fade texts
-  # getting textf for the width
+  # only getting textf for the width
   textf = FONT(60).render("Loading...", 1, WHITE)
   fade.text("Loading...", FONT(60), position=((WIDTH - textf.get_width())/2, (HEIGHT - textf.get_height())/2), colour=WHITE)
   
@@ -153,6 +153,12 @@ def main():
   pygame.event.set_blocked(None)
   pygame.event.set_allowed([pygame.QUIT, pygame.KEYUP, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
   pygame.event.set_allowed(USEREVENTS)
+  
+  lastSpawned = 0
+  nextSpawnDelay = random.randrange(1500, 3000)
+  
+  lastFireball = 0
+  fireballDelay = 1200
   
   #initiates game loop
   run = True
@@ -188,12 +194,15 @@ def main():
         
       elif event.type == pygame.MOUSEBUTTONDOWN:
         if state.get_state() == "game":############################ creation of marshmellows and projectiles are placeholders
-          marshmellows.create(random.randrange(0, 5), "normal")
-          projectiles.create("fireball")
+          #marshmellows.create(random.randrange(0, 5), "normal")
+          #projectiles.create("fireball")
+          pass
       
       elif event.type == pygame.KEYDOWN:
         if state.get_state() == "start":
           if event.key == pygame.K_RETURN:
+            # begins a general transition
+            lastSpawned = pygame.time.get_ticks()
             pygame.event.post(pygame.event.Event(STARTTRANSITION))
         
         elif state.get_state() == "game":
@@ -214,13 +223,23 @@ def main():
     if fade.start == True:
       if fade.fade == "out":
         if state.get_state() == "start":
-          state.set_state("game") ######### this should set it to menu state not game state
-          time.sleep(0.25) # load stuff here
+          # if the transition is specifically the one being used to change from the initial screen to the menu ...
+          state.set_state("game") ######### this should set it to menu state not game state. Menu state shows the different save files?
+          time.sleep(0.25) # load stuff here. placeholder 
           levels.initialise()
           
+    if pygame.time.get_ticks() >= lastSpawned + nextSpawnDelay:
+      marshmellows.create(random.randrange(0, 5), "normal")
+      nextSpawnDelay = random.randrange(1500, 3000)
+      lastSpawned = pygame.time.get_ticks()
+      
+    if pygame.time.get_ticks() >= lastFireball + fireballDelay:
+      projectiles.create("fireball")
+      lastFireball = pygame.time.get_ticks()
+    # first update the positions off sprites
     update_game(marshmellows, projectiles)
-    #print(turret.current)
-    
+    # then draw them onto the screen
     draw(state, marshmellows, projectiles, fade, start, turret)
 
-main()
+if __name__ == "__main__":
+  main()
