@@ -46,13 +46,14 @@ FONT = lambda x: pygame.font.SysFont("consolas.ttf", x)
 # user events
 STARTTRANSITION = pygame.USEREVENT + 1
 STARTLEVEL = pygame.USEREVENT + 2
-USEREVENTS = [STARTTRANSITION, STARTLEVEL]
+SPAWNENEMY = pygame.USEREVENT + 3
+USEREVENTS = [STARTTRANSITION, STARTLEVEL, SPAWNENEMY]
 
 ROWHEIGHT = 75
 #this variable holds the y co-ordinate of the top of the row
 ROWS = [ROWHEIGHT*x+90 for x in range(1, 6)]
 
-def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fade: alpha, start: alpha, turret: Turret):
+def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fade: alpha, start: alpha, turret: Turret, levels: Levels):
   background = pygame.Surface([WIDTH, HEIGHT])
   background.fill((255, 255, 255))
   
@@ -69,22 +70,24 @@ def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fa
   
   elif state.get_state() == "game":
     if state.get_substate() != "paused":
-      WIN.blit(background, (0, 0))
+      WIN.blit(background, (0, 0)) # replace for backgroun
+      
+      # draws the lines for the rows
+      for x in range(0, 5):
+        pygame.draw.line(WIN, BLACK, (0, ROWS[x]), (WIDTH, ROWS[x]), 2)
+      
+      # draws the turret and other sprites
+      turret.draw(WIN)
+      marshmellows.animate(WIN)
+      projectiles.animate(WIN)       
+      
+      # displays what wave number you are on
+      wave_text = FONT(40).render(f"Wave {levels.current_level_int + 1}", 1, BLACK)
+      WIN.blit(wave_text, (WIDTH - wave_text.get_width() - PADDING, PADDING))
+      
     else:
       pass
       # when the game is paused, only refresh the menu screen so that background remains seen
-    
-    # draws the lines for the rows
-    for x in range(0, 5):
-      pygame.draw.line(WIN, BLACK, (0, ROWS[x]), (WIDTH, ROWS[x]), 2)
-    
-    # draws the turret
-    turret.draw(WIN)
-    
-    # marshmellows.draw(WIN)
-    marshmellows.animate(WIN)
-    projectiles.animate(WIN)
-    
   if fade.start == True:
 
     #draw the fade
@@ -100,7 +103,7 @@ def draw(state, marshmellows: all_marshmellows, projectiles: all_projectiles, fa
   # update screen at the end of the processing
   pygame.display.flip()
 
-def update_game(marshmellows, projectiles):
+def update_game(marshmellows, projectiles, levels):
   # remove unnecessary sprites
   marshmellows.delete_off_screen()
   projectiles.delete_off_screen(WIDTH)
@@ -112,6 +115,8 @@ def update_game(marshmellows, projectiles):
   # caluculate and process collisions
   collisions = marshmellows.calculate_projectile_collisions(projectiles)
   marshmellows.process_projectile_collisions(collisions)
+  
+  levels.process(pygame.time.get_ticks(), SPAWNENEMY)
 
 def main():
   
@@ -154,9 +159,6 @@ def main():
   pygame.event.set_allowed([pygame.QUIT, pygame.KEYUP, pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
   pygame.event.set_allowed(USEREVENTS)
   
-  lastSpawned = 0
-  nextSpawnDelay = random.randrange(1500, 3000)
-  
   lastFireball = 0
   fireballDelay = 1200
   
@@ -192,17 +194,15 @@ def main():
         #terminates system
         sys.exit()
         
-      elif event.type == pygame.MOUSEBUTTONDOWN:
-        if state.get_state() == "game":############################ creation of marshmellows and projectiles are placeholders
-          #marshmellows.create(random.randrange(0, 5), "normal")
-          #projectiles.create("fireball")
-          pass
+      # elif event.type == pygame.MOUSEBUTTONDOWN:
+      #   if state.get_state() == "game":
+      #     pass
       
       elif event.type == pygame.KEYDOWN:
         if state.get_state() == "start":
           if event.key == pygame.K_RETURN:
             # begins a general transition
-            lastSpawned = pygame.time.get_ticks()
+            lastFireball = pygame.time.get_ticks() + 1000
             pygame.event.post(pygame.event.Event(STARTTRANSITION))
         
         elif state.get_state() == "game":
@@ -220,6 +220,14 @@ def main():
         levels.passed_level()
         levels.load_current(pygame.time.get_ticks())
         
+      elif event.type == SPAWNENEMY:
+        enemy = levels.current_level_data[levels.current_enemy]
+        if enemy["row"] != 9:
+          marshmellows.create(enemy["row"], enemy["type"])
+        else:
+          marshmellows.create(random.randrange(0, 5), enemy["type"])
+
+        
     if fade.start == True:
       if fade.fade == "out":
         if state.get_state() == "start":
@@ -227,19 +235,17 @@ def main():
           state.set_state("game") ######### this should set it to menu state not game state. Menu state shows the different save files?
           time.sleep(0.25) # load stuff here. placeholder 
           levels.initialise()
+          levels.load_current(pygame.time.get_ticks())
           
-    if pygame.time.get_ticks() >= lastSpawned + nextSpawnDelay:
-      marshmellows.create(random.randrange(0, 5), "normal")
-      nextSpawnDelay = random.randrange(1500, 3000)
-      lastSpawned = pygame.time.get_ticks()
+    if state.get_state() == "game":
+      if pygame.time.get_ticks() >= lastFireball + fireballDelay:
+        projectiles.create("fireball")
+        lastFireball = pygame.time.get_ticks()
+      # first update the positions off sprites
+      update_game(marshmellows, projectiles, levels)
       
-    if pygame.time.get_ticks() >= lastFireball + fireballDelay:
-      projectiles.create("fireball")
-      lastFireball = pygame.time.get_ticks()
-    # first update the positions off sprites
-    update_game(marshmellows, projectiles)
     # then draw them onto the screen
-    draw(state, marshmellows, projectiles, fade, start, turret)
+    draw(state, marshmellows, projectiles, fade, start, turret, levels)
 
 if __name__ == "__main__":
   main()

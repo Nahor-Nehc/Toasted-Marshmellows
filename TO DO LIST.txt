@@ -5,6 +5,7 @@ Working on:
 Want to work on:
 - adding rows (classes) for rendering purposes
     - revamping the collision detections by using the rows classes with row_bound
+- loading images when "loading" text comes up, for optimisation
 
 Finished but not happy with:
 - normal marshmellow animations
